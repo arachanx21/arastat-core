@@ -28,7 +28,9 @@ void ASPC_deinit(ASPC *_ASPC){
 
 	//free the ASPC
 	free(_ASPC);
-
+    _ASPC->dac_sequence=NULL;
+    _ASPC=NULL;
+    
 	return;
 }
 
