@@ -152,7 +152,7 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
         //printf("Halfway! dac value: %hu\n",*(dac_seq+mid));    
     }
     
-    else if (_ASPC->mode == 1) { //linear forward
+    else if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_FWD) { //linear forward
         if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-2048)/get_DAC_step_value(_ASPC); //from negative to zero
         if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (4095-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); //from zero or positive to max
         dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
@@ -168,7 +168,7 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
         }
 
     }
-    else if (_ASPC->mode == 2) { //linear reverse
+    else if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_RV) { //linear reverse
         if (_ASPC->V_start<0)  size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero
         else if (_ASPC->V_start>0) size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero //from zero or positive to max
         dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
@@ -185,7 +185,7 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
 
     }
     
-    else if (_ASPC->mode ==4){ //updated CV
+    else if (_ASPC->mode ==CYCLIC_VOLTAMMETRY){ //updated CV
         uint16_t range;
         if ((_ASPC->V_start==_ASPC->V_final) && (_ASPC->V_start!=0)) size = (uint16_t) 2*2*multiplier*_ASPC->V_start*(_ASPC->rate)/(_ASPC->V_scanRate);
         else if ((_ASPC->V_start)>(_ASPC->V_final)) size = (uint16_t) 2*((_ASPC->V_start)-(_ASPC->V_final))*(_ASPC->rate)/(_ASPC->V_scanRate);
@@ -222,15 +222,15 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
             *(dac_seq+size-i)=*(dac_seq+i);
         } 
     }
-    else if (_ASPC->mode == 5) { //chronoamperometry
-        _ASPC->duration=_ASPC->V_final;
-        size = _ASPC->duration*_ASPC->rate/1000; 
-        _ASPC->_dac_size=size;
-        dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-        for (int i;i<size;i++){
-            *(dac_seq+i)=_ASPC->V_start;
-        }
-    }
+    // else if (_ASPC->mode == 5) { //chronoamperometry
+    //     _ASPC->duration=_ASPC->V_final;
+    //     size = _ASPC->duration*_ASPC->rate/1000; 
+    //     _ASPC->_dac_size=size;
+    //     dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+    //     for (int i;i<size;i++){
+    //         *(dac_seq+i)=_ASPC->V_start;
+    //     }
+    // }
     // _ASPC->raw_data=(int16_t *) malloc((_ASPC->_dac_size)*sizeof(int16_t));
     return dac_seq;
 }
