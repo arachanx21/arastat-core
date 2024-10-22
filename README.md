@@ -1,5 +1,5 @@
 # arastat-core (under development)
-ARA Applied Potentiostat Core. A library to control the DAC for potentiostat. Our potentiostat approach design utilises differential amplifier in which the voltage applied from digital-to-analog converter would be subtracted with a reference voltage in the substracting amplifier.
+ARA Applied Potentiostat Core. A library to generate DAC value for potentiostat. Our potentiostat approach design utilises differential amplifier in which the voltage applied from digital-to-analog converter would be subtracted with a reference voltage in the substracting amplifier.
 
 Here are some references we use to design and develop our potentiostat:
 
