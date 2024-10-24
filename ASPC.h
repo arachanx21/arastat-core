@@ -71,3 +71,4 @@ uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget);
 uint16_t * get_dac_sequence(ASPC *_ASPC);
 float get_current_value(ASPC *_ASPC, uint16_t Rval, int16_t adcValue);
 void get_raw_data(ASPC* _ASPC);
+void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution);

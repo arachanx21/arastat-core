@@ -34,6 +34,10 @@ void ASPC_deinit(ASPC *_ASPC){
 	return;
 }
 
+void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution){
+    _ASPC->DAC_RES=DACResolution;
+}
+
 void set_ASPC_scan_rate(ASPC *_ASPC,uint8_t VScan){
     _ASPC->V_scanRate=VScan;
     free(_ASPC->dac_sequence);
@@ -72,15 +76,17 @@ void set_ASPC_mode(ASPC *_ASPC, uint8_t mode){
 
 uint16_t get_DAC_initial_voltage(ASPC *_ASPC){
     uint16_t dacValue;
+    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
     float voltage=(_ASPC->V_ref/2)+_ASPC->V_start; 
-    dacValue =(uint16_t) (voltage/_ASPC->V_ref*4095);
+    dacValue =(uint16_t) (voltage/_ASPC->V_ref*dacResValue);
     return dacValue;
 }
 
 uint16_t get_DAC_final_voltage(ASPC *_ASPC){
     uint16_t dacValue;
+    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
     float voltage=(_ASPC->V_ref/2)-_ASPC->V_start; 
-    dacValue =(uint16_t) (voltage/_ASPC->V_ref*4095);
+    dacValue =(uint16_t) (voltage/_ASPC->V_ref*dacResValue);
     return dacValue;
 }
 
@@ -94,13 +100,15 @@ uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget){
 
 float get_DAC_step_value(ASPC *_ASPC){
     float stepValue;
-    stepValue = (float) _ASPC->V_scanRate/(_ASPC->V_ref)*4095/_ASPC->rate;
+    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
+    stepValue = (float) _ASPC->V_scanRate/(_ASPC->V_ref)*dacResValue/_ASPC->rate;
     return stepValue;
 }
 
 float get_voltage(ASPC *_ASPC,uint16_t DACValue){
     float volt;
-    volt = (float) DACValue/4095*_ASPC->V_ref;
+    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
+    volt = (float) DACValue/dacResValue*_ASPC->V_ref;
     return volt;
 }
 
@@ -153,8 +161,10 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
     // }
     
     if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_FWD) { //linear forward
-        if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-2048)/get_DAC_step_value(_ASPC); //from negative to zero
-        if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (4095-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); //from zero or positive to max
+        uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
+        uint16_t halfDacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)/2-2;
+        if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-halfDacResValue)/get_DAC_step_value(_ASPC); //from negative to zero
+        if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (dacResValue-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); //from zero or positive to max
         dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
         _ASPC->_dac_size=size;
         
