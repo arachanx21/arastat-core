@@ -1,3 +1,6 @@
+#ifndef ASPC_H
+#define ASPC_H
+#endif
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdint.h"
@@ -16,6 +19,8 @@
 #define TIA_RESISTOR 1000 //1k Resistor is placed in the TIA potentiostat
 #define ON_PRODUCTION 1
 
+extern volatile uint16_t DACIndex;
+
 typedef struct
 {
     /* data all voltages are in mV*/ 
@@ -31,7 +36,7 @@ typedef struct
     //private generated from get_dac_sequence
     uint16_t _dac_size;
     uint16_t *dac_sequence;
-    int16_t *raw_data
+    int16_t *raw_data;
 
 }ASPC;
 
@@ -70,5 +75,9 @@ uint16_t get_DAC_final_voltage(ASPC *_ASPC);
 uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget);
 uint16_t * get_dac_sequence(ASPC *_ASPC);
 float get_current_value(ASPC *_ASPC, uint16_t Rval, int16_t adcValue);
-void get_raw_data(ASPC* _ASPC);
 void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution);
+void enableDataAcquisition(ASPC* _ASPC);
+void disableDataAcquisition(ASPC* _ASPC);
+uint8_t isDAQEnabled(ASPC* _ASPC);
+void acquireData(ASPC* _ASPc);
+void get_raw_data(ASPC* _ASPC);
