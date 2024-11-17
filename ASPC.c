@@ -45,14 +45,21 @@ void set_ASPC_scan_rate(ASPC *_ASPC,uint8_t VScan){
     return;
 }
 
-void set_ASPC_start_voltage(ASPC *_ASPC,float VStart){
+void set_ASPC_start_voltage(ASPC *_ASPC,uint16_t VStart){
     _ASPC->V_start=VStart;
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
     return;
 }
 
-void set_ASPC_reference_voltage(ASPC *_ASPC,float Vref){
+void set_ASPC_reference_voltage(ASPC *_ASPC,uint16_t Vref){
+/* set the reference voltage for the DAC value generation
+    @param
+    ASPC *: pointer to store the data in the structs
+    vRef: Desired reference voltage, in mV
+    
+    @return None
+*/
     _ASPC->V_ref=Vref;
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
@@ -61,6 +68,7 @@ void set_ASPC_reference_voltage(ASPC *_ASPC,float Vref){
 
 void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES){
     _ASPC->DAC_RES=_DAC_RES;
+    //update the DAC sequence following the resolution change
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
     return;
@@ -68,6 +76,7 @@ void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES){
 
 void set_ASPC_mode(ASPC *_ASPC, uint8_t mode){
     _ASPC->mode=mode;
+    //update the DAC sequence following the mode change
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
     return;
