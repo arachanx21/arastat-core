@@ -38,14 +38,14 @@ void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution){
     _ASPC->DAC_RES=DACResolution;
 }
 
-void set_ASPC_scan_rate(ASPC *_ASPC,uint8_t VScan){
+void set_ASPC_scan_rate(ASPC *_ASPC,uint16_t VScan){
     _ASPC->V_scanRate=VScan;
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
     return;
 }
 
-void set_ASPC_start_voltage(ASPC *_ASPC,uint16_t VStart){
+void set_ASPC_start_voltage(ASPC *_ASPC,int16_t VStart){
     _ASPC->V_start=VStart;
     free(_ASPC->dac_sequence);
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
