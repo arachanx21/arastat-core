@@ -26,12 +26,12 @@ typedef struct
     /* data all voltages are in mV*/ 
     uint16_t V_scanRate;
     uint16_t V_ref;
+    int16_t V_initial;
     int16_t V_start;
     int16_t V_final;
     uint8_t DAC_RES;
     uint16_t rate;
     uint8_t mode;
-    uint16_t duration;
     
     //private generated from get_dac_sequence
     uint16_t _dac_size;
@@ -69,6 +69,7 @@ uint16_t get_DAC_initial_voltage(ASPC *_ASPC);
 void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES);
 void set_ASPC_reference_voltage(ASPC *_ASPC,uint16_t Vref);
 void set_ASPC_start_voltage(ASPC *_ASPC,int16_t VStart);
+void set_ASPC_final_voltage(ASPC *_ASPC,int16_t Vfinal);
 void set_ASPC_scan_rate(ASPC *_ASPC,uint16_t VScan);
 void set_ASPC_mode(ASPC *_ASPC, uint8_t mode);
 uint16_t get_DAC_final_voltage(ASPC *_ASPC);
