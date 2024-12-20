@@ -26,9 +26,9 @@ typedef struct
     /* data all voltages are in mV*/ 
     uint16_t V_scanRate;
     uint16_t V_ref;
-    int16_t V_initial;
-    int16_t V_start;
-    int16_t V_final;
+    int16_t V_initial; //initial voltage scan set the same as the V_ref to disable it.
+    int16_t V_start; //start scan 
+    int16_t V_final; //final scan 
     uint8_t DAC_RES;
     uint16_t rate;
     uint8_t mode;
@@ -47,20 +47,6 @@ typedef enum {
     CYCLIC_VOLTAMMETRY_SPEC,
 }ASPC_Mode_t;
 
-// typedef struct 
-// {
-//     uint16_t DAC_upper_limit;
-//     uint16_t DAC_lower_limit;
-//     uint16_t DAC_starting_value;
-//     float DAC_step_value;
-//     float V_ref;
-
-// }ASPC_DAC;
-
-
-// ASPC_DAC *ASPC_init(ASPC* _ASPC);
-// void start(ASPC_DAC *_ASPC_DAC);
-// float dac_get_voltage(ASPC_DAC *_ASPC,uint16_t DACValue);
 void ASPC_init(ASPC *_ASPC);
 void ASPC_deinit(ASPC *_ASPC);
 float get_voltage(ASPC *_ASPC,uint16_t DACValue);
@@ -80,5 +66,6 @@ void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution);
 void enableDataAcquisition(ASPC* _ASPC);
 void disableDataAcquisition(ASPC* _ASPC);
 uint8_t isDAQEnabled(ASPC* _ASPC);
-void acquireData(ASPC* _ASPc);
+uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic);
 void get_raw_data(ASPC* _ASPC);
+void acquireData(ASPC* _ASPc);

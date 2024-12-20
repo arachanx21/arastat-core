@@ -14,7 +14,7 @@ void ASPC_init(ASPC *_ASPC){
     _ASPC->DAC_RES=12;
     _ASPC->V_ref=3300;
     _ASPC->V_start=-1000;
-    _ASPC->V_initial=1;
+    _ASPC->V_initial=_ASPC->V_ref;
     _ASPC->V_scanRate=100;
     _ASPC->mode=3;
     _ASPC->rate=1;
@@ -101,7 +101,7 @@ uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget){
     uint16_t dacValue;
     //convert the voltage relative to the reference
     uint16_t voltage = (vRef/2) + vTarget;
-    dacValue = (uint16_t) vTarget*4095/vRef;
+    dacValue = (uint16_t) voltage*4095/vRef;
     return dacValue;
 }
 
@@ -120,60 +120,100 @@ float get_voltage(ASPC *_ASPC,uint16_t DACValue){
 }
 
 uint16_t * get_dac_sequence(ASPC *_ASPC){
-    /*generating array of dac values for potentiostat voltage sequences
-    @params ASPC ASPC struct
+  /*generating array of dac values for potentiostat voltage sequences
+  @params ASPC ASPC struct
 
-    @return array pointer of dac sequences of values 
-    */
-    //setting up the multiplier
-    int multiplier;
-    if (_ASPC->V_start>=0) multiplier=1;
-    else multiplier=-1;
-    uint16_t *dac_seq=NULL;
-    uint16_t size;
+  @return array pointer of dac sequences of values 
+  */
+  //setting up the multiplier
+  int multiplier;
+  if (_ASPC->V_start>=0) multiplier=1;
+  else multiplier=-1;
+  uint16_t *dac_seq=NULL;
+  uint16_t size;
     
-    if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_FWD) { //linear forward
-        uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
-        uint16_t halfDacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)/2-2;
-        if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-halfDacResValue)/get_DAC_step_value(_ASPC); //from negative to zero
-        if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (dacResValue-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); //from zero or positive to max
-        dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-        _ASPC->_dac_size=size;
-        
-        *dac_seq=get_DAC_initial_voltage(_ASPC);
-        float step_val = get_DAC_step_value(_ASPC);
-        float val = *dac_seq;
-
-        for (int i=1;i<size;i++){
-            val+=step_val;
-            *(dac_seq+i)=(uint16_t) val;
-        }
-
-    }
+  if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_FWD) { //linear forward
+    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
+    uint16_t halfDacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)/2-2;
+    //from negative to zero
+    if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-halfDacResValue)/get_DAC_step_value(_ASPC);
+    //from zero or positive to max
+    if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (dacResValue-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); 
+    dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+    _ASPC->_dac_size=size;
+      
+    *dac_seq=get_DAC_initial_voltage(_ASPC);
+    float step_val = get_DAC_step_value(_ASPC);
+    float val = *dac_seq;
+      for (int i=1;i<size;i++){
+          val+=step_val;
+          *(dac_seq+i)=(uint16_t) val;
+      }
+  }
     else if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_RV) { //linear reverse
-        if (_ASPC->V_start<0)  size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero
-        else if (_ASPC->V_start>0) size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero //from zero or positive to max
-        dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-        _ASPC->_dac_size=size;
-        
-        *dac_seq=get_DAC_initial_voltage(_ASPC);
-        float step_val = get_DAC_step_value(_ASPC);
-        float val = *dac_seq;
-
-        for (int i=1;i<size;i++){
-            val-=step_val;
-            *(dac_seq+i)=(uint16_t) val;
-        }
+      if (_ASPC->V_start<0)  size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero
+      else if (_ASPC->V_start>0) size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero or positive to max
+      dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+      _ASPC->_dac_size=size;
+      
+      *dac_seq=get_DAC_initial_voltage(_ASPC);
+      float step_val = get_DAC_step_value(_ASPC);
+      float val = *dac_seq;
+      for (int i=1;i<size;i++){
+          val-=step_val;
+          *(dac_seq+i)=(uint16_t) val;
+      }
 
     }
     
-    else if (_ASPC->mode ==CYCLIC_VOLTAMMETRY){ //updated CV
-        uint16_t range;
-        if ((_ASPC->V_start==_ASPC->V_final) && (_ASPC->V_start!=0)) size = (uint16_t) 2*2*multiplier*_ASPC->V_start*(_ASPC->rate)/(_ASPC->V_scanRate);
-        else if ((_ASPC->V_start)>(_ASPC->V_final)) size = (uint16_t) 2*((_ASPC->V_start)-(_ASPC->V_final))*(_ASPC->rate)/(_ASPC->V_scanRate);
-        else size = (uint16_t) 2*(-_ASPC->V_start+_ASPC->V_final)*(_ASPC->rate)/(_ASPC->V_scanRate);
-        uint16_t mid;
+    else if ((_ASPC->mode ==CYCLIC_VOLTAMMETRY) && (_ASPC->V_initial==_ASPC->V_ref)){ //updated CV
+      uint16_t range;
+      if ((_ASPC->V_start==_ASPC->V_final) && (_ASPC->V_start!=0)) size = (uint16_t) 2*2*multiplier*_ASPC->V_start*(_ASPC->rate)/(_ASPC->V_scanRate);
+      else if ((_ASPC->V_start)>(_ASPC->V_final)) size = (uint16_t) 2*((_ASPC->V_start)-(_ASPC->V_final))*(_ASPC->rate)/(_ASPC->V_scanRate);
+      else size = (uint16_t) 2*(-_ASPC->V_start+_ASPC->V_final)*(_ASPC->rate)/(_ASPC->V_scanRate);
+      uint16_t mid;
         
+      if (size%2!=0) {
+          size++;
+          mid=size/2;
+          _ASPC->_dac_size=size+1;//yet to debug
+          dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+          }
+
+      else{
+          size++;
+          mid=size/2;
+          _ASPC->_dac_size=size;
+          dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+      }
+      printf("size:%hu\n",size);
+
+      float val=get_DAC_initial_voltage(_ASPC);
+      float step_val = get_DAC_step_value(_ASPC);
+      printf("Step value: %f",step_val);
+      //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1
+      if (_ASPC->V_start < 0 || _ASPC->V_start>_ASPC->V_final ) multiplier*=-1;
+
+      for (int i=0;i<mid;i++){
+          *(dac_seq+i)=(uint16_t) val;
+          *(dac_seq+size-1-i)=*(dac_seq+i);
+          val+=step_val*multiplier;
+      } 
+      *(dac_seq+mid)=get_DAC_final_voltage(_ASPC);
+    }
+    return dac_seq;
+}
+
+uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic){
+    uint16_t range;
+    uint16_t size;
+    uint16_t *dac_seq = NULL;
+    uint16_t mid;
+    int8_t multiplier = 1;
+    if ((V_start)>(V_final)) size = (uint16_t) ((V_start)-(V_final))*(_ASPC->rate)/(_ASPC->V_scanRate);
+    else size = (uint16_t) (-V_start+V_final)*(_ASPC->rate)/(_ASPC->V_scanRate);
+    if (cyclic) {
+        size*=2;
         if (size%2!=0) {
             size++;
             mid=size/2;
@@ -187,21 +227,28 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
             _ASPC->_dac_size=size;
             dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
         }
-        printf("size:%hu\n",size);
-
-        float val=get_DAC_initial_voltage(_ASPC);
-        float step_val = get_DAC_step_value(_ASPC);
-        printf("Step value: %f",step_val);
-        //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1
-        if (_ASPC->V_start < 0 || _ASPC->V_start>_ASPC->V_final ) multiplier*=-1;
-
-        for (int i=0;i<mid;i++){
-            *(dac_seq+i)=(uint16_t) val;
-            *(dac_seq+size-1-i)=*(dac_seq+i);
-            val+=step_val*multiplier;
-        } 
-        *(dac_seq+mid)=get_DAC_final_voltage(_ASPC);
     }
+    else {
+      mid=size;
+      dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+      }
+      _ASPC->_dac_size=size;
+      printf("size:%hu\n",size);
+
+      float val=get_dac_desired_voltage(_ASPC->V_ref,V_start);
+      float step_val = get_DAC_step_value(_ASPC);
+      printf("Step value: %f\n",step_val);
+      //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1
+      if (V_start < 0 || V_start>V_final ) multiplier*=-1;
+
+      for (int i=0;i<mid;i++){
+          *(dac_seq+i)=(uint16_t) val;
+          if (cyclic) *(dac_seq+size-1-i)=*(dac_seq+i);
+          val+=step_val*multiplier;
+      } 
+      if (cyclic) *(dac_seq+mid)=get_dac_desired_voltage(_ASPC->V_ref,V_final);
+      else *(dac_seq+size-1)=get_dac_desired_voltage(_ASPC->V_ref,V_final);
+    
     return dac_seq;
 }
 /*
