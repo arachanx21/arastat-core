@@ -145,14 +145,17 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
       }
       else{
         uint16_t *seq1 = sequence_generator(_ASPC,_ASPC->V_initial,_ASPC->V_final,1);
-        uint16_t size = _ASPC->_dac_size;
+        size = _ASPC->_dac_size;
         uint16_t *seq2 = sequence_generator(_ASPC,_ASPC->V_initial,_ASPC->V_start,1);
         
+        //when sequence 1 and 2 are added, there is one same value in the start of sequence 2
+        //the size is reduced by 1 to remove redundancy
         dac_seq = (uint16_t *) malloc((size-1+_ASPC->_dac_size)*sizeof(uint16_t));
 
         for (int i=0;i<size;i++){
             *(dac_seq+i)=*(seq1+i);
         }
+        //the first value of seq2 is the same as the last value of seq1, skipped 1 increment.
         for (int i=1;i<_ASPC->_dac_size;i++){
             *(dac_seq+size+i-1)=*(seq2+i);
         }
@@ -200,8 +203,8 @@ uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8
       float val=get_dac_desired_voltage(_ASPC->V_ref,V_start);
       float step_val = get_DAC_step_value(_ASPC);
       printf("Step value: %f\n",step_val);
-      //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1
-      if (V_start < 0 || V_start>V_final ) multiplier*=-1;
+      //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1 to reverse the increment.
+      if (V_start>V_final ) multiplier*=-1;
 
       for (int i=0;i<mid;i++){
           *(dac_seq+i)=(uint16_t) val;
