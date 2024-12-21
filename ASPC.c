@@ -132,74 +132,36 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
   uint16_t *dac_seq=NULL;
   uint16_t size;
     
-  if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_FWD) { //linear forward
-    uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
-    uint16_t halfDacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)/2-2;
-    //from negative to zero
-    if (_ASPC->V_start<0)  size = (uint16_t) multiplier*(get_DAC_initial_voltage(_ASPC)-halfDacResValue)/get_DAC_step_value(_ASPC);
-    //from zero or positive to max
-    if (_ASPC->V_start>0 || _ASPC->V_start==0) size = (uint16_t) (dacResValue-get_DAC_initial_voltage(_ASPC))/get_DAC_step_value(_ASPC); 
-    dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-    _ASPC->_dac_size=size;
-      
-    *dac_seq=get_DAC_initial_voltage(_ASPC);
-    float step_val = get_DAC_step_value(_ASPC);
-    float val = *dac_seq;
-      for (int i=1;i<size;i++){
-          val+=step_val;
-          *(dac_seq+i)=(uint16_t) val;
-      }
+  if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY) { //linear forward
+    if (_ASPC->V_start==_ASPC->V_final) return NULL;
+    return sequence_generator(_ASPC,_ASPC->V_start,_ASPC->V_final,0);
   }
-    else if (_ASPC->mode == LINEAR_SWEEP_VOLTAMMETRY_RV) { //linear reverse
-      if (_ASPC->V_start<0)  size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero
-      else if (_ASPC->V_start>0) size = (uint16_t) get_DAC_initial_voltage(_ASPC)/get_DAC_step_value(_ASPC); //from negative to zero or positive to max
-      dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-      _ASPC->_dac_size=size;
-      
-      *dac_seq=get_DAC_initial_voltage(_ASPC);
-      float step_val = get_DAC_step_value(_ASPC);
-      float val = *dac_seq;
-      for (int i=1;i<size;i++){
-          val-=step_val;
-          *(dac_seq+i)=(uint16_t) val;
-      }
-
-    }
     
-    else if ((_ASPC->mode ==CYCLIC_VOLTAMMETRY) && (_ASPC->V_initial==_ASPC->V_ref)){ //updated CV
-      uint16_t range;
-      if ((_ASPC->V_start==_ASPC->V_final) && (_ASPC->V_start!=0)) size = (uint16_t) 2*2*multiplier*_ASPC->V_start*(_ASPC->rate)/(_ASPC->V_scanRate);
-      else if ((_ASPC->V_start)>(_ASPC->V_final)) size = (uint16_t) 2*((_ASPC->V_start)-(_ASPC->V_final))*(_ASPC->rate)/(_ASPC->V_scanRate);
-      else size = (uint16_t) 2*(-_ASPC->V_start+_ASPC->V_final)*(_ASPC->rate)/(_ASPC->V_scanRate);
-      uint16_t mid;
-        
-      if (size%2!=0) {
-          size++;
-          mid=size/2;
-          _ASPC->_dac_size=size+1;//yet to debug
-          dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
-          }
-
-      else{
-          size++;
-          mid=size/2;
-          _ASPC->_dac_size=size;
-          dac_seq = (uint16_t *) malloc((_ASPC->_dac_size)*sizeof(uint16_t));
+    else if (_ASPC->mode==CYCLIC_VOLTAMMETRY){ 
+      //if the initial voltage isn't set
+      if (_ASPC->V_initial==_ASPC->V_ref){
+        dac_seq =  sequence_generator(_ASPC,_ASPC->V_start,_ASPC->V_final,1);
+      
       }
-      printf("size:%hu\n",size);
+      else{
+        uint16_t *seq1 = sequence_generator(_ASPC,_ASPC->V_initial,_ASPC->V_final,1);
+        uint16_t size = _ASPC->_dac_size;
+        uint16_t *seq2 = sequence_generator(_ASPC,_ASPC->V_initial,_ASPC->V_start,1);
+        
+        dac_seq = (uint16_t *) malloc((size-1+_ASPC->_dac_size)*sizeof(uint16_t));
 
-      float val=get_DAC_initial_voltage(_ASPC);
-      float step_val = get_DAC_step_value(_ASPC);
-      printf("Step value: %f",step_val);
-      //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1
-      if (_ASPC->V_start < 0 || _ASPC->V_start>_ASPC->V_final ) multiplier*=-1;
-
-      for (int i=0;i<mid;i++){
-          *(dac_seq+i)=(uint16_t) val;
-          *(dac_seq+size-1-i)=*(dac_seq+i);
-          val+=step_val*multiplier;
-      } 
-      *(dac_seq+mid)=get_DAC_final_voltage(_ASPC);
+        for (int i=0;i<size;i++){
+            *(dac_seq+i)=*(seq1+i);
+        }
+        for (int i=1;i<_ASPC->_dac_size;i++){
+            *(dac_seq+size+i-1)=*(seq2+i);
+        }
+        _ASPC->_dac_size+=size-1;
+        free(seq1);
+        free(seq2);
+      }
+      
+        
     }
     return dac_seq;
 }
