@@ -45,6 +45,7 @@ typedef enum {
 }ASPC_Mode_t;
 
 void ASPC_init(ASPC *_ASPC);
+void ASPC_configure(ASPC *_ASPC,int16_t * data);
 void ASPC_deinit(ASPC *_ASPC);
 float get_voltage(ASPC *_ASPC,uint16_t DACValue);
 float get_DAC_step_value(ASPC *_ASPC);
@@ -62,7 +63,6 @@ uint16_t get_DAC_final_voltage(ASPC *_ASPC);
 uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget);
 uint16_t * get_dac_sequence(ASPC *_ASPC);
 float get_current_value(ASPC *_ASPC, uint16_t Rval, int16_t adcValue);
-void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t DACResolution);
 void enableDataAcquisition(ASPC* _ASPC);
 void disableDataAcquisition(ASPC* _ASPC);
 uint8_t isDAQEnabled(ASPC* _ASPC);

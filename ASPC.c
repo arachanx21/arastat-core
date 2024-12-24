@@ -114,10 +114,6 @@ void set_ASPC_mode(ASPC *_ASPC, uint8_t mode){
     return;
 }
 
-void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t resolution){
-    _ASPC->DAC_RES = resolution;
-    return;
-}
 
 void set_ASPC_sample_rate(ASPC *_ASPC,uint16_t sample_rate){
     _ASPC->rate=sample_rate;
