@@ -295,5 +295,4 @@ uint16_t voltage_to_dac(int16_t voltage,uint16_t vRef, uint16_t dacResolution){
     uint16_t dacVal;
     dacVal = (uint16_t) (voltage-vRef/2)*dacResolution/vRef;
     return dacVal;    
-    
 }
