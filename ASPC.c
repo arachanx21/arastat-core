@@ -28,6 +28,7 @@ void ASPC_configure(ASPC *_ASPC,int16_t *data){
     _ASPC->V_scanRate=*(data+3);
     _ASPC->V_ref=*(data+4);
     _ASPC->rate=SAMPLERATE;
+    _ASPC->DAC_RES=DAC_RESOLUTION;
     _ASPC->V_initial=_ASPC->V_ref;
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
 }
@@ -110,6 +111,16 @@ void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES){
 void set_ASPC_mode(ASPC *_ASPC, uint8_t mode){
     _ASPC->mode=mode;
     //update the DAC sequence following the mode change
+    return;
+}
+
+void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t resolution){
+    _ASPC->DAC_RES = resolution;
+    return;
+}
+
+void set_ASPC_sample_rate(ASPC *_ASPC,uint16_t sample_rate){
+    _ASPC->rate=sample_rate;
     return;
 }
 

@@ -17,7 +17,6 @@
 #define SAMPLERATE 20   //#samples generated per second
 #define DAC_RESOLUTION 12 //12-bit
 #define TIA_RESISTOR 1000 //1k Resistor is placed in the TIA potentiostat
-#define ON_PRODUCTION 1
 
 extern volatile uint16_t DACIndex;
 
@@ -57,6 +56,8 @@ void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit);
 void set_ASPC_final_voltage(ASPC *_ASPC,int16_t Vfinal);
 void set_ASPC_scan_rate(ASPC *_ASPC,uint16_t VScan);
 void set_ASPC_mode(ASPC *_ASPC, uint8_t mode);
+void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t resolution);
+void set_ASPC_sample_rate(ASPC *_ASPC,uint16_t sample_rate);
 uint16_t get_DAC_final_voltage(ASPC *_ASPC);
 uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget);
 uint16_t * get_dac_sequence(ASPC *_ASPC);
