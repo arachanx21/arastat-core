@@ -62,25 +62,39 @@ void set_ASPC_start_voltage(ASPC *_ASPC,int16_t VStart){
 }
 
 void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit){
-    if (Vinit>(_ASPC->V_ref)/2 || Vinit<-(_ASPC->V_ref)/2) {
-        printf("Initial voltage is out of range\n");    
-        return;
+  if (Vinit>(_ASPC->V_ref)/2) {
+      printf("Initial voltage is out of range of positive reference voltage\n");
+      return;
+  }
+  else if (Vinit<(-(_ASPC->V_ref)/2)) {
+  	printf("Initial voltage is out of range of negative reference voltage\n");
+  	return;
+  }
+  //if the scan is increasing, the initial voltage should be less than the final voltage and more than the starting one
+  else if ((_ASPC->V_start>_ASPC->V_final)){    
+   if (Vinit>_ASPC->V_final || Vinit<_ASPC->V_start){
+      printf("Initial voltage is out of range\n");
+      printf("The initial voltage is lower than starting voltage or higher than final voltage\n");
+      return;
     }
-    //if the scan is increasing, the initial voltage should be less than the final voltage and more than the starting one
-    else if ((_ASPC->V_start>_ASPC->V_final) && (Vinit>_ASPC->V_final || Vinit<_ASPC->V_start)){
-        printf("Initial voltage is out of range\n");
-        return;
-    }
-    //if the scan is decreasing, the initial voltage should be more than the final voltage and less than the starting one
-    else if ((_ASPC->V_start<_ASPC->V_final) && (Vinit<_ASPC->V_final || Vinit>_ASPC->V_start)){
-        printf("Initial voltage is out of range\n");
-        return;
-    }
-    else{
-        _ASPC->V_initial=Vinit;
-        _ASPC->dac_sequence=get_dac_sequence(_ASPC);
-        return;
-    }
+  }
+  //if the scan is decreasing, the initial voltage should be more than the final voltage and less than the starting one
+  else if (_ASPC->V_start<_ASPC->V_final){
+      if (Vinit<_ASPC->V_final || Vinit>_ASPC->V_start){
+      printf("Initial voltage is out of range\n");
+      printf("The initial voltage is higher than starting voltage or lower than final voltage\n");
+      return;
+      }
+  }
+  else {
+    printf("The initial voltage cannot be set\n");
+    return;
+  }
+  _ASPC->V_initial=Vinit;
+  _ASPC->dac_sequence=get_dac_sequence(_ASPC);
+  printf("The inital voltage has been successfully. set initial voltage:%d\n",Vinit);
+  return;
+    
 }
 
 void set_ASPC_final_voltage(ASPC *_ASPC,int16_t Vfinal){
@@ -152,10 +166,10 @@ float get_DAC_step_value(ASPC *_ASPC){
     return stepValue;
 }
 
-float get_voltage(ASPC *_ASPC,uint16_t DACValue){
-    float volt;
+int16_t get_voltage(ASPC *_ASPC,uint16_t DACValue){
+    int16_t volt;
     uint16_t dacResValue = (uint16_t) pow(2,_ASPC->DAC_RES)-1;
-    volt = (float) DACValue/dacResValue*_ASPC->V_ref;
+    volt = DACValue*(_ASPC->V_ref)/dacResValue;
     return volt;
 }
 
