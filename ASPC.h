@@ -66,5 +66,6 @@ void enableDataAcquisition(ASPC* _ASPC);
 void disableDataAcquisition(ASPC* _ASPC);
 uint8_t isDAQEnabled(ASPC* _ASPC);
 uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic);
+uint16_t voltage_to_dac(int16_t voltage,uint16_t vRef, uint16_t dacResolution);
 void get_raw_data(ASPC* _ASPC);
 void acquireData(ASPC* _ASPc);
