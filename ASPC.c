@@ -203,7 +203,6 @@ uint16_t * get_dac_sequence(ASPC *_ASPC){
 }
 
 uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic){
-    uint16_t range;
     uint16_t size;
     uint16_t *dac_seq = NULL;
     uint16_t mid;
@@ -235,7 +234,7 @@ uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8
 
       float val=get_dac_desired_voltage(_ASPC->V_ref,V_start);
       float step_val = get_DAC_step_value(_ASPC);
-      printf("Step value: %f\n",step_val);
+      printf("Step value: %f\n",(uint16_t)step_val);
       //if Vstart <0 DAC value increases, then from 1 should be multiplied by -1 otherwise changed from -1 to reverse the increment.
       if (V_start>V_final ) multiplier*=-1;
 
