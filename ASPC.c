@@ -21,9 +21,20 @@ void ASPC_init(ASPC *_ASPC){
     _ASPC->dac_sequence=get_dac_sequence(_ASPC);
 }
 
+void ASPC_configure(ASPC *_ASPC,int16_t *data){
+    _ASPC->mode=*(data);
+    _ASPC->V_start=*(data+1);
+    _ASPC->V_final=*(data+2);
+    _ASPC->V_scanRate=*(data+3);
+    _ASPC->V_ref=*(data+4);
+    _ASPC->rate=SAMPLERATE;
+    _ASPC->V_initial=_ASPC->V_ref;
+    _ASPC->dac_sequence=get_dac_sequence(_ASPC);
+}
+
 void ASPC_deinit(ASPC *_ASPC){
 	//free the dac sequence
-	free(_ASPC->dac_sequence);
+	if (_ASPC->dac_sequence !=NULL) free(_ASPC->dac_sequence);
 
 	//free the ASPC
 	free(_ASPC);
@@ -47,6 +58,28 @@ void set_ASPC_scan_rate(ASPC *_ASPC,uint16_t VScan){
 void set_ASPC_start_voltage(ASPC *_ASPC,int16_t VStart){
     _ASPC->V_start=VStart;
     return;
+}
+
+void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit){
+    if (Vinit>(_ASPC->V_ref)/2 || Vinit<-(_ASPC->V_ref)/2) {
+        printf("Initial voltage is out of range\n");    
+        return;
+    }
+    //if the scan is increasing, the initial voltage should be less than the final voltage and more than the starting one
+    else if ((_ASPC->V_start>_ASPC->V_final) && (Vinit>_ASPC->V_final || Vinit<_ASPC->V_start)){
+        printf("Initial voltage is out of range\n");
+        return;
+    }
+    //if the scan is decreasing, the initial voltage should be more than the final voltage and less than the starting one
+    else if ((_ASPC->V_start<_ASPC->V_final) && (Vinit<_ASPC->V_final || Vinit>_ASPC->V_start)){
+        printf("Initial voltage is out of range\n");
+        return;
+    }
+    else{
+        _ASPC->V_initial=Vinit;
+        _ASPC->dac_sequence=get_dac_sequence(_ASPC);
+        return;
+    }
 }
 
 void set_ASPC_final_voltage(ASPC *_ASPC,int16_t Vfinal){
