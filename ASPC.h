@@ -47,7 +47,7 @@ typedef enum {
 void ASPC_init(ASPC *_ASPC);
 void ASPC_configure(ASPC *_ASPC,int16_t * data);
 void ASPC_deinit(ASPC *_ASPC);
-float get_voltage(ASPC *_ASPC,uint16_t DACValue);
+int16_t get_voltage(ASPC *_ASPC,uint16_t DACValue);
 float get_DAC_step_value(ASPC *_ASPC);
 uint16_t get_DAC_initial_voltage(ASPC *_ASPC);
 void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES);
