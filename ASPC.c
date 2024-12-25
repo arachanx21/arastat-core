@@ -71,7 +71,7 @@ void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit){
   	return;
   }
   //if the scan is increasing, the initial voltage should be less than the final voltage and more than the starting one
-  else if ((_ASPC->V_start>_ASPC->V_final)){    
+  else if ((_ASPC->V_start<_ASPC->V_final)){    
    if (Vinit>_ASPC->V_final || Vinit<_ASPC->V_start){
       printf("Initial voltage is out of range\n");
       printf("The initial voltage is lower than starting voltage or higher than final voltage\n");
@@ -79,7 +79,7 @@ void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit){
     }
   }
   //if the scan is decreasing, the initial voltage should be more than the final voltage and less than the starting one
-  else if (_ASPC->V_start<_ASPC->V_final){
+  else if (_ASPC->V_start>_ASPC->V_final){
       if (Vinit<_ASPC->V_final || Vinit>_ASPC->V_start){
       printf("Initial voltage is out of range\n");
       printf("The initial voltage is higher than starting voltage or lower than final voltage\n");
