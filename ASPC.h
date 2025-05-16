@@ -1,20 +1,22 @@
 #ifndef ASPC_H
 #define ASPC_H
-#endif
-#include "stdio.h"
+
+// #include "stdio.h"
 #include "stdlib.h"
 #include "stdint.h"
-#include "math.h"
+// #include "math.h"
+// #include "stm32g0xx_hal.h"
+#include "stdio.h"
 
 #define ASPC_SCANRATE_50MV  50
 #define ASPC_SCANRATE_100MV 100 
 #define ASPC_SCANRATE_300MV 300
 #define ASPC_SCANRATE_500MV 500
 
-#define ASPC_5V_REF 5.0
-#define ASPC_3_3V_REF 3.3
+#define ASPC_5V_REF 5000
+#define ASPC_3_3V_REF 3300
 
-#define SAMPLERATE 20   //#samples generated per second
+#define SAMPLERATE 10   //#samples generated per second
 #define DAC_RESOLUTION 12 //12-bit
 #define TIA_RESISTOR 1000 //1k Resistor is placed in the TIA potentiostat
 
@@ -37,36 +39,39 @@ typedef struct
     uint16_t *dac_sequence;
     int16_t *raw_data;
 
-}ASPC;
+}ASPC_Conf;
 
 typedef enum {
 	LINEAR_SWEEP_VOLTAMMETRY = 1,
     CYCLIC_VOLTAMMETRY,
+    CHRONOAMPEROMETRY,
 }ASPC_Mode_t;
 
-void ASPC_init(ASPC *_ASPC);
-void ASPC_configure(ASPC *_ASPC,int16_t * data);
-void ASPC_deinit(ASPC *_ASPC);
-int16_t get_voltage(ASPC *_ASPC,uint16_t DACValue);
-float get_DAC_step_value(ASPC *_ASPC);
-uint16_t get_DAC_initial_voltage(ASPC *_ASPC);
-void set_ASPC_DAC_resolution(ASPC *_ASPC,uint8_t _DAC_RES);
-void set_ASPC_reference_voltage(ASPC *_ASPC,uint16_t Vref);
-void set_ASPC_start_voltage(ASPC *_ASPC,int16_t VStart);
-void set_ASPC_initial_voltage(ASPC *_ASPC,int16_t Vinit);
-void set_ASPC_final_voltage(ASPC *_ASPC,int16_t Vfinal);
-void set_ASPC_scan_rate(ASPC *_ASPC,uint16_t VScan);
-void set_ASPC_mode(ASPC *_ASPC, uint8_t mode);
-void set_ASPC_DAC_Resolution(ASPC *_ASPC, uint8_t resolution);
-void set_ASPC_sample_rate(ASPC *_ASPC,uint16_t sample_rate);
-uint16_t get_DAC_final_voltage(ASPC *_ASPC);
-uint16_t get_dac_desired_voltage(uint16_t vRef, int16_t vTarget);
-uint16_t * get_dac_sequence(ASPC *_ASPC);
-float get_current_value(ASPC *_ASPC, uint16_t Rval, int16_t adcValue);
-void enableDataAcquisition(ASPC* _ASPC);
-void disableDataAcquisition(ASPC* _ASPC);
-uint8_t isDAQEnabled(ASPC* _ASPC);
-uint16_t *sequence_generator(ASPC *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic);
-uint16_t voltage_to_DAC(int16_t voltage,uint16_t vRef, uint16_t dacResolution);
-void get_raw_data(ASPC* _ASPC);
-void acquireData(ASPC* _ASPc);
+void ASPC_init(ASPC_Conf *_ASPC);
+void ASPC_configure(ASPC_Conf *_ASPC,int16_t * data);
+void ASPC_deinit(ASPC_Conf *_ASPC);
+int16_t ASPC_DACtoVolt(ASPC_Conf *_ASPC,uint16_t DACValue);
+float ASPC_GetDACStepValue(ASPC_Conf *_ASPC);
+uint16_t ASPC_GetDACInitialVoltage(ASPC_Conf *_ASPC);
+void ASPC_SetDACResolution(ASPC_Conf *_ASPC,uint8_t _DAC_RES);
+void ASPC_SetReferenceVoltage(ASPC_Conf *_ASPC,uint16_t Vref);
+void ASPC_SetStartVoltage(ASPC_Conf *_ASPC,int16_t VStart);
+void ASPC_SetVInit(ASPC_Conf *_ASPC,int16_t Vinit);
+void ASPC_SetVFinal(ASPC_Conf *_ASPC,int16_t Vfinal);
+void ASPC_SetScanRate(ASPC_Conf *_ASPC,uint16_t VScan);
+void ASPC_SetMode(ASPC_Conf *_ASPC, uint8_t mode);
+void ASPC_SetDACResolution(ASPC_Conf *_ASPC, uint8_t resolution);
+void ASPC_SetSampleRate(ASPC_Conf *_ASPC,uint16_t sample_rate);
+uint16_t ASPC_GetDACVFinal(ASPC_Conf *_ASPC);
+uint16_t ASPC_VToDAC(uint16_t vRef, int16_t vTarget);
+uint16_t * ASPC_GetDACSequence(ASPC_Conf *_ASPC);
+float ASPC_GetCurrent(ASPC_Conf *_ASPC, uint16_t Rval, int16_t adcValue);
+void enableDataAcquisition(ASPC_Conf* _ASPC);
+void disableDataAcquisition(ASPC_Conf* _ASPC);
+uint8_t isDAQEnabled(ASPC_Conf* _ASPC);
+uint16_t *GenerateSequence(ASPC_Conf *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic);
+uint16_t VoltageToDAC(int16_t voltage,uint16_t vRef, uint16_t dacResolution);
+void get_raw_data(ASPC_Conf* _ASPC);
+void acquireData(ASPC_Conf* _ASPc);
+
+#endif
