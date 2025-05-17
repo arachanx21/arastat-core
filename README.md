@@ -1,7 +1,7 @@
 # arastat-core (under development)
 ARA Applied Potentiostat Core. An API to generate DAC value for potentiostat. We use this API to generate DAC signals for cyclic voltammetry and LSV (untested) in our Potentiostat, ARASTAT. Our potentiostat approach design utilises differential amplifier in which the voltage applied from digital-to-analog converter would be subtracted with a reference voltage in the substracting amplifier.
 
-ARAStat Schematics:
+ARAStat Schematics (Simulated):
 <img width="1171" alt="Screenshot 2025-01-21 at 18 09 09" src="https://github.com/user-attachments/assets/0607d480-1aae-4664-af6a-07dc5bb2d724" />
 
 
