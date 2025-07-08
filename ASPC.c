@@ -11,15 +11,21 @@ You may copy, modify,redistribute directly or in derivatives as long as it's in 
 #include "ASPC.h"
 
 void ASPC_init(ASPC_Conf *_ASPC){
+    //default configuration for the ASPC
     _ASPC->dac_sequence=NULL;
     _ASPC->DAC_RES=12;
-    _ASPC->V_ref=3300;
-    _ASPC->V_start=-1000;
+    #ifdef USE_5V
+    _ASPC->V_ref=ASPC_5V_REF;
+    #else
+    _ASPC->V_ref=ASPC_3_3V_REF;
+    #endif
+    _ASPC->V_start=-600;
+    //V_initial set the same as reference to disable the initial voltage
     _ASPC->V_initial=_ASPC->V_ref;
     _ASPC->V_scanRate=100;
-    _ASPC->mode=3;
-    _ASPC->rate=1;
-    _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    _ASPC->mode=CYCLIC_VOLTAMMETRY;
+    _ASPC->rate=SAMPLERATE;
+    // _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
 }
 
 void ASPC_configure(ASPC_Conf *_ASPC,int16_t *data){
@@ -34,9 +40,9 @@ void ASPC_configure(ASPC_Conf *_ASPC,int16_t *data){
         _ASPC->V_ref=3300;
     }
     
-    _ASPC->rate=SAMPLERATE;
-    _ASPC->DAC_RES=DAC_RESOLUTION;
-    _ASPC->V_initial=_ASPC->V_ref;
+    // _ASPC->rate=SAMPLERATE;
+    // _ASPC->DAC_RES=DAC_RESOLUTION;
+    // _ASPC->V_initial=_ASPC->V_ref;
     _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
 }
 
@@ -98,7 +104,7 @@ void ASPC_SetVInit(ASPC_Conf *_ASPC,int16_t Vinit){
     return;
   }
   _ASPC->V_initial=Vinit;
-  _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+//   _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
   printf("The inital voltage has been successfully. set initial voltage:%d\n",Vinit);
   return;
     
@@ -117,23 +123,38 @@ void ASPC_SetReferenceVoltage(ASPC_Conf *_ASPC,uint16_t Vref){
     
     @return None
 */
+    //set V_initial as V_ref if it is the same as V_initial
+    if (_ASPC->V_initial==_ASPC->V_ref) {
+        _ASPC->V_initial=Vref;    
+    }
     _ASPC->V_ref=Vref;
     if (_ASPC->dac_sequence!=NULL) {
         free(_ASPC->dac_sequence);
-        _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);}
+        _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    }
     return;
 }
 
 void ASPC_SetDACResolution(ASPC_Conf *_ASPC,uint8_t _DAC_RES){
     _ASPC->DAC_RES=_DAC_RES;
     //update the DAC sequence following the resolution change
-    if (_ASPC->dac_sequence!=NULL) free(_ASPC->dac_sequence);
-    _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    if (_ASPC->dac_sequence!=NULL) {
+        free(_ASPC->dac_sequence);
+        _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    }
     return;
 }
 
 void ASPC_SetMode(ASPC_Conf *_ASPC, uint8_t mode){
+    //set the mode of the potentiostat
+    //1 for linear sweep voltammetry
+    //2 for cyclic voltammetry
+    //3 for chronoamperometry
     _ASPC->mode=mode;
+    if (_ASPC->dac_sequence!=NULL) {
+        free(_ASPC->dac_sequence);
+        _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    }
     //update the DAC sequence following the mode change
     return;
 }
@@ -141,6 +162,10 @@ void ASPC_SetMode(ASPC_Conf *_ASPC, uint8_t mode){
 
 void ASPC_SetSampleRate(ASPC_Conf *_ASPC,uint16_t sample_rate){
     _ASPC->rate=sample_rate;
+    if (_ASPC->dac_sequence!=NULL) {
+        free(_ASPC->dac_sequence);
+        _ASPC->dac_sequence=ASPC_GetDACSequence(_ASPC);
+    }
     return;
 }
 
@@ -182,6 +207,12 @@ int16_t ASPC_DACtoVolt(ASPC_Conf *_ASPC,uint16_t DACValue){
     volt = DACValue*(_ASPC->V_ref)/dacResValue;
     return volt;
 }
+void ASPC_GetDACs(ASPC_Conf *_ASPC){
+    //get the DAC values for the start and final voltages
+    if (_ASPC->dac_sequence!=NULL) free(_ASPC->dac_sequence);
+    _ASPC->dac_sequence = ASPC_GetDACSequence(_ASPC);
+    return;
+}
 
 uint16_t * ASPC_GetDACSequence(ASPC_Conf *_ASPC){
   /*generating array of dac values for potentiostat voltage sequences
@@ -193,6 +224,12 @@ uint16_t * ASPC_GetDACSequence(ASPC_Conf *_ASPC){
 //   int multiplier=0;
 //   if (_ASPC->V_start>=0) multiplier=1;
 //   else multiplier=-1;
+
+  //sanitary check
+  if (_ASPC->dac_sequence!=NULL) {
+    free(_ASPC->dac_sequence);
+    _ASPC->dac_sequence=NULL;
+  }
   uint16_t *dac_seq=NULL;
   uint16_t size;
     

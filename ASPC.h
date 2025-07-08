@@ -45,6 +45,7 @@ typedef enum {
 	LINEAR_SWEEP_VOLTAMMETRY = 1,
     CYCLIC_VOLTAMMETRY,
     CHRONOAMPEROMETRY,
+    SAMPLE_RATE_CHANGE,
 }ASPC_Mode_t;
 
 void ASPC_init(ASPC_Conf *_ASPC);
@@ -65,6 +66,7 @@ void ASPC_SetSampleRate(ASPC_Conf *_ASPC,uint16_t sample_rate);
 uint16_t ASPC_GetDACVFinal(ASPC_Conf *_ASPC);
 uint16_t ASPC_VToDAC(uint16_t vRef, int16_t vTarget);
 uint16_t * ASPC_GetDACSequence(ASPC_Conf *_ASPC);
+void ASPC_GetDACs(ASPC_Conf *_ASPC);
 float ASPC_GetCurrent(ASPC_Conf *_ASPC, uint16_t Rval, int16_t adcValue);
 void enableDataAcquisition(ASPC_Conf* _ASPC);
 void disableDataAcquisition(ASPC_Conf* _ASPC);
