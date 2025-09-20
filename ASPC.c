@@ -333,27 +333,43 @@ float ASPC_GetCurrent(ASPC_Conf *_ASPC, uint16_t Rval, int16_t adcValue){
 }
 
 uint8_t isDAQEnabled(ASPC_Conf* _ASPC){
-    if(_ASPC->raw_data==NULL) return 0;
-    else return 1;
+    return _ASPC->isDAQEnabled;
 }
 
 void enableDataAcquisition(ASPC_Conf* _ASPC){
-    if (_ASPC->raw_data!=NULL) free(_ASPC->raw_data);
-    _ASPC->raw_data=(int16_t *) malloc((_ASPC->_dac_size)*sizeof(int16_t));
+    //enable data acquisition
+    _ASPC->isDAQEnabled=1;
+
+    if (_ASPC->buffer_curr!=NULL) free(_ASPC->buffer_curr);
+    if (_ASPC->buffer_volt!=NULL) free(_ASPC->buffer_volt);
+    _ASPC->buffer_curr=(int16_t *) malloc((_ASPC->_dac_size)*sizeof(int16_t));
+    _ASPC->buffer_volt=(int16_t *) malloc((_ASPC->_dac_size)*sizeof(int16_t));
 }
 
 void disableDataAcquisition(ASPC_Conf* _ASPC){
-    if (_ASPC->raw_data!=NULL) free(_ASPC->raw_data);
-    _ASPC->raw_data=NULL;
+    _ASPC->isDAQEnabled=0;
+    if (_ASPC->buffer_curr!=NULL) free(_ASPC->buffer_curr);
+    if (_ASPC->buffer_volt!=NULL) free(_ASPC->buffer_volt);
+    _ASPC->buffer_curr=NULL;
+    _ASPC->buffer_volt=NULL;
     
 }
 
 /*
 get data*/
 void get_raw_data(ASPC_Conf* _ASPC){
+    if (_ASPC->isDAQEnabled==0) {
+        printf("Data acquisition is not enabled\n");
+        return;
+    }
+    if (_ASPC->buffer_curr==NULL || _ASPC->buffer_volt==NULL) {
+        printf("Data buffers are not allocated\n");
+        return;
+    }
     for (int i=0;i<_ASPC->_dac_size;i++){
         printf("DAC Value: %d\t",*(_ASPC->dac_sequence+i));
-        printf("I-Voltage: %d\n",*(_ASPC->raw_data+i));
+        printf("adc_buffer: %d\n",*(_ASPC->buffer_volt+i));
+        printf("curr_buffer: %d\n",*(_ASPC->buffer_curr+i));
     }
 }
 
@@ -366,4 +382,41 @@ uint16_t VoltageToDAC(int16_t voltage,uint16_t vRef, uint16_t dacResolution){
     }
     dacVal = (uint16_t) (voltage+(vRef/2))*dacResolution/vRef;
     return dacVal;    
+}
+
+void ASPC_setReferenceMeasuredVoltage(ASPC_Conf* _ASPC, int16_t vRef){
+    _ASPC->vRef=vRef;
+    return;
+}
+
+void ASPC_setRTIA(ASPC_Conf* _ASPC, uint16_t RTIA){
+    _ASPC->RTIA=RTIA;
+    return;
+}
+
+int16_t ASPC_getRerefenceMeasuredVoltage(ASPC_Conf* _ASPC){
+    return _ASPC->vRef;
+}
+
+uint16_t ASPC_getRTIA(ASPC_Conf* _ASPC){
+    return _ASPC->RTIA;
+}
+
+void ASPC_ComputeCurrent(ASPC_Conf* _ASPC){
+    if (_ASPC->isDAQEnabled==0) {
+        printf("Data acquisition is not enabled\n");
+        return;
+    }
+    if (_ASPC->buffer_curr==NULL || _ASPC->buffer_volt==NULL) {
+        printf("Data buffers are not allocated\n");
+        return;
+    }
+    if (_ASPC->RTIA==0) {
+        printf("RTIA is not set\n");
+        return;
+    }
+    for (int i=0;i<_ASPC->_dac_size;i++){
+        *(_ASPC->buffer_curr+i)=ASPC_GetCurrent(_ASPC,_ASPC->RTIA,*(_ASPC->buffer_volt+i));
+    }
+    return;
 }

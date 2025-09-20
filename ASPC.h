@@ -33,13 +33,18 @@ typedef struct
     uint8_t DAC_RES;
     uint16_t rate;
     uint8_t mode;
-    
+    uint8_t isDAQEnabled; //flag to store data or not
+    int16_t *buffer_volt; //buffer to store adc values
+    int16_t *buffer_curr; //buffer to store adc values    
     //private generated from get_dac_sequence
     uint16_t _dac_size;
     uint16_t *dac_sequence;
-    int16_t *raw_data;
+    int16_t vRef; //measured reference voltage
+    uint16_t RTIA; //transimpedance amplifier resistor value 
 
 }ASPC_Conf;
+
+
 
 typedef enum {
 	LINEAR_SWEEP_VOLTAMMETRY = 1,
@@ -74,6 +79,13 @@ uint8_t isDAQEnabled(ASPC_Conf* _ASPC);
 uint16_t *GenerateSequence(ASPC_Conf *_ASPC, int16_t V_start,int16_t V_final, uint8_t cyclic);
 uint16_t VoltageToDAC(int16_t voltage,uint16_t vRef, uint16_t dacResolution);
 void get_raw_data(ASPC_Conf* _ASPC);
-void acquireData(ASPC_Conf* _ASPc);
+
+//Computation functions
+void ASPC_setReferenceMeasuredVoltage(ASPC_Conf* _ASPC, int16_t vRef);
+void ASPC_setRTIA(ASPC_Conf* _ASPC, uint16_t RTIA);
+void ASPC_ComputeCurrent(ASPC_Conf* _ASPC);
+int16_t ASPC_getRerefenceMeasuredVoltage(ASPC_Conf* _ASPC);
+uint16_t ASPC_getRTIA(ASPC_Conf* _ASPC);
+
 
 #endif
